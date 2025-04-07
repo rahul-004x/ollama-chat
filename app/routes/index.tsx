@@ -132,26 +132,37 @@ function AIChat() {
   const messagesWithThinkingSplit = useMessagesWithThinking(messages);
 
   return (
-    <div className="flex flex-col min-h-screen bg-gray-900">
-      <div className="p-4 container mx-auto max-w-4xl space-y-4">
-        <label htmlFor={"premise"}>
-          Premise:
-          <textarea name={"premise"} style={{ color: "black", padding: "5px 10px", width: "100%" }} value={premise} onChange={(e) => setPremise(e.target.value)} />
-        </label>
-      </div>
-      <div className="flex-1 p-4 container mx-auto max-w-4xl space-y-4 pb-32">
-        {messagesWithThinkingSplit
-          .filter(({ role }) => role === "user" || role === "assistant")
-          .map((m, index) => <AIMessage key={index} message={m} />)}
+    <div className="flex flex-col min-h-screen bg-gradient-to-b from-gray-900 to-gray-800">
+      <div className="p-6 container mx-auto max-w-4xl space-y-4">
+        <div className="bg-gray-800/50 backdrop-blur-sm rounded-xl p-4 border border-gray-700/50 shadow-lg transition-all hover:bg-gray-800/60">
+          <label htmlFor="premise" className="block text-sm font-medium text-gray-300 mb-2">
+            System Prompt:
+            <textarea
+              name="premise"
+              className="mt-2 w-full rounded-lg bg-gray-900/50 border-gray-700/50 text-gray-100 p-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+              value={premise}
+              onChange={(e) => setPremise(e.target.value)}
+              rows={3}
+            />
+          </label>
+        </div>
       </div>
 
-      <div className="fixed bottom-0 left-0 right-0 p-4 bg-gray-800 border-t border-gray-700">
+      <div className="flex-1 p-6 container mx-auto max-w-4xl space-y-6 pb-32 overflow-y-auto">
+        {messagesWithThinkingSplit
+          .filter(({ role }) => role === "user" || role === "assistant")
+          .map((m, index) => (
+            <AIMessage key={index} message={m} />
+          ))}
+      </div>
+
+      <div className="fixed bottom-0 left-0 right-0 p-6 bg-gray-900/80 backdrop-blur-md border-t border-gray-800 shadow-lg">
         <form onSubmit={handleSubmit} className="container mx-auto max-w-4xl">
-          <div className="flex gap-2">
+          <div className="flex gap-3">
             <div className="flex-1 relative">
-              <MessageSquare className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+              <MessageSquare className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
               <Input
-                className="flex-1 bg-gray-900 border-gray-700 text-gray-100 pl-10"
+                className="flex-1 h-12 bg-gray-800/50 border-gray-700/50 text-gray-100 pl-11 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                 value={input}
                 disabled={loading}
                 placeholder="Ask your local DeepSeek..."
@@ -161,12 +172,12 @@ function AIChat() {
             <Button
               type="submit"
               disabled={loading || !input.trim()}
-              className="bg-primary hover:bg-primary/90"
+              className="h-12 px-6 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-medium transition-colors disabled:opacity-50"
             >
               {loading ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
+                <Loader2 className="h-5 w-5 animate-spin" />
               ) : (
-                <Send className="h-4 w-4" />
+                <Send className="h-5 w-5" />
               )}
               <span className="sr-only">Send message</span>
             </Button>
@@ -178,60 +189,80 @@ function AIChat() {
 }
 
 const AIMessage: React.FC<{ message: MessageWithThinking }> = ({ message }) => {
-  const [collapsed, setCollapsed] = useState(true)
+  const [collapsed, setCollapsed] = useState(false);
 
   return (
     <div
-      className={`flex ${message.role === "user" ? "justify-end" : "justify-start"}`}
+      className={`flex ${message.role === "user" ? "justify-end" : "justify-start"} animate-in slide-in-from-bottom-2 duration-300 ease-out`}
     >
       <div
-        className={`max-w-[80%] rounded-lg p-4 ${message.role === "user"
-          ? "bg-primary text-black"
-          : "bg-gray-800 text-gray-100"
-          }`}
+        className={`max-w-[80%] rounded-2xl p-4 shadow-lg transition-all ${
+          message.role === "user"
+            ? "bg-blue-600 text-white hover:bg-blue-500"
+            : "bg-gray-800/80 text-gray-100 hover:bg-gray-800"
+        } backdrop-blur-sm border border-white/10`}
       >
-        <div className="flex items-center gap-2 mb-2" style={{ justifyContent: "space-between" }}>
-          <span className="text-sm font-medium" style={{ display: "flex", gap: 10 }}>
+        <div className="flex items-center gap-2 mb-3">
+          <div className="flex items-center gap-2 flex-1">
             {message.role === "user" ? (
-              <User2 className="h-4 w-4" />
+              <div className="bg-white/20 rounded-full p-1">
+                <User2 className="h-4 w-4" />
+              </div>
             ) : (
-              !message.finishedThinking ? <Loader2 className="h-4 w-4 animate-spin" /> : <Bot className="h-4 w-4" />
+              <div className="bg-blue-500/20 rounded-full p-1">
+                {!message.finishedThinking ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <Bot className="h-4 w-4" />
+                )}
+              </div>
             )}
-
-            <span>{message.role === "user" ? "You" : "DeepSeek R1 (1.5b)"}</span>
-          </span>
-          <span>
-            {message.role === "assistant" && (
-              <span
-                style={{ cursor: "pointer", fontStyle: "italic", fontSize: "12px" }}
-                onClick={() => setCollapsed((c) => !c)}
-              >
-                {collapsed ? "show thoughts" : "hide thoughts"}
-              </span>
-            )}
-          </span>
+            <span className="text-sm font-medium">
+              {message.role === "user" ? "You" : "DeepSeek R1 (1.5b)"}
+            </span>
+          </div>
+          
+          {message.role === "assistant" && (
+            <button
+              onClick={() => setCollapsed((c) => !c)}
+              className="text-xs italic text-gray-400 hover:text-gray-300 transition-colors"
+            >
+              {collapsed ? "show thoughts" : "hide thoughts"}
+            </button>
+          )}
         </div>
 
         {message.role === "assistant" && !message.finishedThinking && (
-          <div className="flex items-center gap-2 text-gray-400">
-            <span className="text-sm">Thinking...</span>
+          <div className="flex items-center gap-2 text-gray-400 mb-2">
+            <div className="flex gap-1">
+              <span className="animate-bounce delay-0">.</span>
+              <span className="animate-bounce delay-150">.</span>
+              <span className="animate-bounce delay-300">.</span>
+            </div>
+            <span className="text-sm">Thinking</span>
           </div>
         )}
 
         {message.think && (
-          <div style={{ display: collapsed ? "none" : "block" }} className="mb-2 text-sm italic border-l-2 border-gray-600 pl-2 py-1 text-gray-300">
+          <div 
+            className={`mb-3 text-sm italic border-l-2 border-gray-600 pl-3 py-2 text-gray-300 transition-all duration-300 ${
+              collapsed ? 'hidden' : 'block animate-in slide-in-from-top-2'
+            }`}
+          >
             <Markdown>{message.think}</Markdown>
           </div>
         )}
+
         <article
-          className={`prose max-w-none ${message.role === "user"
-            ? "prose-invert prose-p:text-black prose-headings:text-black prose-strong:text-black prose-li:text-black"
-            : "prose-invert prose-p:text-gray-100 prose-headings:text-gray-100 prose-strong:text-gray-100 prose-li:text-gray-100"
-            }`}
+          className={`prose max-w-none ${
+            message.role === "user"
+              ? "prose-invert prose-p:text-white/90 prose-headings:text-white prose-strong:text-white/90 prose-li:text-white/90"
+              : "prose-invert prose-p:text-gray-100 prose-headings:text-gray-100 prose-strong:text-gray-100 prose-li:text-gray-100"
+          }`}
         >
           <Markdown>{message.content}</Markdown>
         </article>
       </div>
     </div>
-  )
+  );
 }
