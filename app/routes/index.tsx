@@ -1,3 +1,4 @@
+import { useRef, useEffect } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/start";
 import { Bot, Loader2, MessageSquare, Send, User2 } from "lucide-react";
@@ -96,6 +97,12 @@ function AIChat() {
   const [premise, setPremise] = useState("You are a software developer with a focus on React/TypeScript.\rKeep your answer simple and straight forward.");
   const [loading, setLoading] = useState(false);
 
+  const bottomRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages]);
+
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setInput("");
@@ -133,6 +140,7 @@ function AIChat() {
 
   return (
     <div className="flex flex-col min-h-screen bg-gradient-to-b from-gray-900 to-gray-800">
+      {/* System Prompt Input */}
       <div className="p-6 container mx-auto max-w-4xl space-y-4">
         <div className="bg-gray-800/50 backdrop-blur-sm rounded-xl p-4 border border-gray-700/50 shadow-lg transition-all hover:bg-gray-800/60">
           <label htmlFor="premise" className="block text-sm font-medium text-gray-300 mb-2">
@@ -148,14 +156,18 @@ function AIChat() {
         </div>
       </div>
 
+      {/* Chat Messages */}
       <div className="flex-1 p-6 container mx-auto max-w-4xl space-y-6 pb-32 overflow-y-auto">
         {messagesWithThinkingSplit
           .filter(({ role }) => role === "user" || role === "assistant")
           .map((m, index) => (
             <AIMessage key={index} message={m} />
           ))}
+        {/* 👇 Scroll target */}
+        <div ref={bottomRef} />
       </div>
 
+      {/* Message Input */}
       <div className="fixed bottom-0 left-0 right-0 p-6 bg-gray-900/80 backdrop-blur-md border-t border-gray-800 shadow-lg">
         <form onSubmit={handleSubmit} className="container mx-auto max-w-4xl">
           <div className="flex gap-3">
